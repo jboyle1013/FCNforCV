@@ -137,18 +137,18 @@ class Generator(tf.keras.utils.Sequence):
     def load_images(self, image_group):
         images = []
         for image_path in image_group:
-            img = cv2.imread(image_path)
-            img_shape = len(img.shape)
-            if img_shape == 2:
-                img = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
-            elif img_shape == 4:
-                img = cv2.cvtColor(img,cv2.COLOR_BGRA2RGB)
-            elif img_shape == 3:
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img, rh, rw = self.resize_image(img, self.image_min_side)
+            img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # Read the image in grayscale
+            img, rh, rw = self.resize_image(img)
+            img = np.expand_dims(img, axis=-1)  # Add an extra dimension for the channel
+
+            transformed_img = self.datagen.random_transform(img)
+
+            # Check if an extra dimension is added and remove it if necessary
+            if transformed_img.ndim > img.ndim:
+                transformed_img = np.squeeze(transformed_img, axis=-1)
 
             images.append(img)
-            images.append(self.datagen.random_transform(img))
+            images.append(transformed_img)
 
         return images
 
