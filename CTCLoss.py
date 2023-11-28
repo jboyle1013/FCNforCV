@@ -1,22 +1,14 @@
 import tensorflow as tf
-from tensorflow.keras import backend as K
-from tensorflow.keras.layers import Layer
+from keras import backend as K
 
-class CTCLossLayer(Layer):
-    def __init__(self, **kwargs):
-        super(CTCLossLayer, self).__init__(**kwargs)
+def ctc_loss_function(y_true, y_pred):
+    # y_true: tensor (samples, max_string_length) containing the truth labels.
+    # y_pred: tensor (samples, time_steps, num_categories) containing the logits.
+    # input_length and label_length should be calculated or provided depending on your data.
 
-    def call(self, inputs):
-        # inputs should be in the form [y_pred, labels, input_length, label_length]
-        y_pred, labels, input_length, label_length = inputs
+    # Shape of y_true and y_pred
+    label_length = tf.math.count_nonzero(y_true, axis=-1)
+    input_length = tf.fill(tf.shape(label_length), tf.shape(y_pred)[1])
 
-        # Compute the CTC loss using Keras backend
-        ctc_loss = K.ctc_batch_cost(labels, y_pred, input_length, label_length)
-        self.add_loss(ctc_loss)
-
-        # Return the predictions (used for testing, not training)
-        return y_pred
-
-    def get_config(self):
-        config = super(CTCLossLayer, self).get_config()
-        return config
+    # Compute the CTC loss
+    return K.ctc_batch_cost(y_true, y_pred, input_length, label_length)

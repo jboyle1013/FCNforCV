@@ -4,13 +4,13 @@ from generator import Generator
 import os
 import matplotlib.pyplot as plt
 from export_savedmodel import export, testagainstimagewmodel
-from CTCLoss import CTCLossLayer
+from CTCLoss import ctc_loss_function
 from newmodel import NewFCN_model
 
 
 def train(model, train_generator, val_generator, epochs=50):
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
-                  loss=CTCLossLayer,
+                  loss=ctc_loss_function,  # Use the CTC loss function
                   metrics='accuracy')
 
     checkpoint_path = './snapshots'
