@@ -139,8 +139,7 @@ class Generator(tf.keras.utils.Sequence):
         images = []
         for image_path in image_group:
             img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # Read the image in grayscale
-            img, rh, rw = self.resize_image(img)
-            img = np.expand_dims(img, axis=-1)  # Add an extra dimension for the channel
+            img= self.resize_image(img)
 
             transformed_img = self.datagen.random_transform(img)
 
