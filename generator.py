@@ -42,38 +42,44 @@ class Generator(tf.keras.utils.Sequence):
             brightness_range=[0.5, 1.5]  # Random brightness adjustment
         )
 
+
     def load_image_paths_labels(self, dataset_path):
-            """
-            Load image paths and labels from the handwriting dataset.
-            """
-            self.image_paths = []
-            self.image_labels = []
+        """
+        Load image paths and labels from the handwriting dataset.
+        """
+        self.image_paths = []
+        self.image_labels = []
+        self.encoded_image_labels = []
+        self.max_label_len = 0  # Reset max label length
 
-            with open('/home/mdelab/PycharmProjects/FCNforCV/archive/iam_words/words.txt') as f:
-                contents = f.readlines()
+        with open(os.path.join(dataset_path, 'words.txt')) as f:
+            contents = f.readlines()
 
-            lines = [line.strip() for line in contents][18:]  # Adjust the index if needed
+        lines = [line.strip() for line in contents][18:]  # Adjust the index if needed
 
-            for line in lines:
-                try:
-                    splits = line.split(' ')
-                    status = splits[1]
+        for line in lines:
+            try:
+                splits = line.split(' ')
+                status = splits[1]
 
-                    if status == 'ok':
-                        word_id = splits[0]
-                        word = "".join(splits[8:])
-                        encoded_label = self.encode_to_labels(word)
-                        splits_id = word_id.split('-')
-                        filepath = os.path.join(dataset_path, 'words', splits_id[0],
-                                                '{}-{}'.format(splits_id[0], splits_id[1]),
-                                                word_id + '.png')
+                if status == 'ok':
+                    word_id = splits[0]
+                    word = "".join(splits[8:])
+                    encoded_label = self.encode_to_labels(word)
+                    if len(encoded_label) > self.max_label_len:
+                        self.max_label_len = len(encoded_label)  # Update max label length
 
-                        if os.path.exists(filepath):
-                            self.image_paths.append(filepath)
-                            self.image_labels.append(word)
-                            self.encoded_image_labels.append(encoded_label)
-                except:
-                    pass
+                    splits_id = word_id.split('-')
+                    filepath = os.path.join(dataset_path, 'words', splits_id[0],
+                                            '{}-{}'.format(splits_id[0], splits_id[1]),
+                                            word_id + '.png')
+
+                    if os.path.exists(filepath):
+                        self.image_paths.append(filepath)
+                        self.image_labels.append(word)
+                        self.encoded_image_labels.append(encoded_label)
+            except:
+                pass
 
             # Split the data into training and validation sets
             split_index = int(len(self.image_paths) * (1 - self.validation_split))
