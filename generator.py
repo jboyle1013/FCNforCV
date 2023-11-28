@@ -27,6 +27,7 @@ class Generator(tf.keras.utils.Sequence):
         self.subset = subset
         self.validation_split = validation_split
         self.batch_size = BATCH_SIZE
+        self.final_batch_size = BATCH_SIZE * 2
         self.shuffle_images = shuffle_images
         self.load_image_paths_labels(DATASET_PATH)
         self.create_image_groups()
@@ -186,14 +187,28 @@ class Generator(tf.keras.utils.Sequence):
             self.encoded_label_groups.append(ebatch)
 
 
-        def encode_to_labels(self, txt):
-            char_list = "!\"#&'()*+,-./0123456789:;?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-            # Encoding each output word into digits
-            dig_lst = []
-            for index, chara in enumerate(txt):
-                dig_lst.append(char_list.index(chara))
+    def encode_to_labels(self, txt):
+        char_list = "!\"#&'()*+,-./0123456789:;?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        # Encoding each output word into digits
+        dig_lst = []
+        for index, chara in enumerate(txt):
+            dig_lst.append(char_list.index(chara))
 
-            return dig_lst
+        return dig_lst
+
+    def construct_image_batch(self, image_group):
+        # get the max image shape
+        max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
+
+        # construct an image batch object
+        image_batch = np.zeros((self.final_batch_size,) + max_shape, dtype='float32')
+
+        # copy all images to the upper left part of the image batch object
+        for image_index, image in enumerate(image_group):
+            image_batch[image_index, :image.shape[0], :image.shape[1], :image.shape[2]] = image
+
+        return image_batch
+
 
     def __len__(self):
         """
