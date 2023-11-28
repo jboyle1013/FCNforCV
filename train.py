@@ -45,7 +45,7 @@ if __name__ == "__main__":
     model = CNN_model()
 
     # The below folders are created using utils.py
-    train_dir = 'dice/train'
+    train_dir = 'archive/iam_words/words'
 
 
 
