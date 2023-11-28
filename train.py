@@ -1,16 +1,16 @@
 import tensorflow as tf
-from model import FCN_model
+from model import CNN_model
 from generator import Generator
 import os
 import matplotlib.pyplot as plt
 from export_savedmodel import export, testagainstimagewmodel
-
+from CTCLoss import CTCLossLayer
 from newmodel import NewFCN_model
 
 
 def train(model, train_generator, val_generator, epochs=50):
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
-                  loss='categorical_crossentropy',
+                  loss=CTCLossLayer,
                   metrics='accuracy')
 
     checkpoint_path = './snapshots'
@@ -42,17 +42,17 @@ if __name__ == "__main__":
         except RuntimeError as e:
             print(e)
     # Create FCN model
-    model = FCN_model()
+    model = CNN_model()
 
     # The below folders are created using utils.py
     train_dir = 'dice/train'
-    val_dir = 'dice/valid'
+
 
 
     # If you get out of memory error try reducing the batch size
-    BATCH_SIZE = 4
-    train_generator = Generator(train_dir, BATCH_SIZE, shuffle_images=True, image_min_side=24)
-    val_generator = Generator(val_dir, BATCH_SIZE, shuffle_images=True, image_min_side=24)
+    BATCH_SIZE = 8
+    train_generator = Generator(train_dir, BATCH_SIZE, shuffle_images=True, subset="training")
+    val_generator = Generator(train_dir, BATCH_SIZE, shuffle_images=True, subset="validation")
 
 
 

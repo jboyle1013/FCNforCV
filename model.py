@@ -1,71 +1,77 @@
-import tensorflow as tf
+from keras.layers import Input, Conv2D, MaxPooling2D, BatchNormalization, Lambda
+from keras.layers import Dense, Bidirectional, LSTM, Reshape, Add
+from keras.layers import LeakyReLU, DepthwiseConv2D, SeparableConv2D
+from keras.models import Model
+import keras.backend as K
 
-def FCN_model(len_classes=6, dropout_rate=0.2):
+def squeeze(x):
+    return K.squeeze(x, 1)
 
-    input = tf.keras.layers.Input(shape=(None, None, 3))
+def CNN_model():
+    char_list = "!\"#&'()*+,-./0123456789:;?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    dropout_rate = 0.25
+    lstm_units = 256
 
-    x = tf.keras.layers.Conv2D(filters=16, kernel_size=3, strides=1)(input)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation('relu')(x)
+    # Improved model structure with advanced convolutional layers and residual connections
+    inputs = Input(shape=(32, 128, 1))
 
-    # x = tf.keras.layers.MaxPooling2D()(x)
+    # First convolutional block with residual connection
+    # First convolutional block with residual connection
+    conv_1 = Conv2D(64, (3,3), padding='same')(inputs)
+    conv_1 = BatchNormalization()(conv_1)
+    conv_1 = LeakyReLU()(conv_1)
+    conv_1_res = Conv2D(64, (3,3), padding='same')(conv_1)
+    conv_1_res = BatchNormalization()(conv_1_res)
+    conv_1_res = LeakyReLU()(conv_1_res)
+    pool_1 = MaxPooling2D(pool_size=(2, 2), strides=2)(conv_1_res)
 
-    x = tf.keras.layers.Conv2D(filters=32, kernel_size=3, strides=1)(x)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation('relu')(x)
+    # Adjusting the shortcut path to match dimensions
+    shortcut_1 = Conv2D(64, (1,1), strides=(2, 2), padding='same')(conv_1)
+    res_1 = Add()([shortcut_1, pool_1])
 
-    # x = tf.keras.layers.MaxPooling2D()(x)
+    # Second convolutional block with depthwise separable convolutions
+    conv_2 = SeparableConv2D(128, (3,3), padding='same')(res_1)
+    conv_2 = BatchNormalization()(conv_2)
+    conv_2 = LeakyReLU()(conv_2)
+    pool_2 = MaxPooling2D(pool_size=(2, 2), strides=2)(conv_2)
 
-    x = tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=2)(x)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation('relu')(x)
+    # Third convolutional block with dilated convolutions
+    conv_3 = Conv2D(256, (3,3), dilation_rate=2, padding='same')(pool_2)
+    conv_3 = BatchNormalization()(conv_3)
+    conv_3 = LeakyReLU()(conv_3)
 
-    # x = tf.keras.layers.MaxPooling2D()(x)
+    # Further layers continue as before
+    conv_4 = Conv2D(256, (3,3), padding='same')(conv_3)
+    conv_4 = BatchNormalization()(conv_4)
+    conv_4 = LeakyReLU()(conv_4)
+    pool_4 = MaxPooling2D(pool_size=(2, 1))(conv_4)
 
-    x = tf.keras.layers.Conv2D(filters=128, kernel_size=3, strides=2)(x)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation('relu')(x)
+    conv_5 = Conv2D(512, (3,3), padding='same')(pool_4)
+    conv_5 = BatchNormalization()(conv_5)
+    conv_5 = LeakyReLU()(conv_5)
 
-    # x = tf.keras.layers.MaxPooling2D()(x)
+    conv_6 = Conv2D(512, (3,3), padding='same')(conv_5)
+    conv_6 = BatchNormalization()(conv_6)
+    conv_6 = LeakyReLU()(conv_6)
+    pool_6 = MaxPooling2D(pool_size=(2, 1))(conv_6)
 
-    x = tf.keras.layers.Conv2D(filters=256, kernel_size=3, strides=2)(x)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation('relu')(x)
+    conv_7 = Conv2D(512, (2,2), activation='relu')(pool_6)
 
-    # Uncomment the below line if you're using dense layers
-    # x = tf.keras.layers.GlobalMaxPooling2D()(x)
+    # Correct reshaping for LSTM layers
+    # Compute the new shape: The number of timesteps is the second dimension of the output of conv_7
+    # Using the named function in a Lambda layer
+    squeezed = Lambda(squeeze)(conv_7)
 
-    # Fully connected layer 1
-    # x = tf.keras.layers.Dropout(dropout_rate)(x)
-    # x = tf.keras.layers.BatchNormalization()(x)
-    # x = tf.keras.layers.Dense(units=64)(x)
-    # x = tf.keras.layers.Activation('relu')(x)
 
-    # Fully connected layer 1
-    x = tf.keras.layers.Conv2D(filters=32, kernel_size=1, strides=1)(x)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation('relu')(x)
+    # Bidirectional LSTM layers
+    blstm_1 = Bidirectional(LSTM(lstm_units, return_sequences=True, dropout=dropout_rate))(squeezed)
+    blstm_2 = Bidirectional(LSTM(lstm_units, return_sequences=True, dropout=dropout_rate))(blstm_1)
 
-    # Fully connected layer 2
-    # x = tf.keras.layers.Dropout(dropout_rate)(x)
-    # x = tf.keras.layers.BatchNormalization()(x)
-    # x = tf.keras.layers.Dense(units=len_classes)(x)
-    # predictions = tf.keras.layers.Activation('softmax')(x)
+    outputs = Dense(len(char_list) + 1, activation='softmax')(blstm_2)
 
-    # Fully connected layer 2
-    x = tf.keras.layers.Conv2D(filters=len_classes, kernel_size=1, strides=1)(x)
-    x = tf.keras.layers.Dropout(dropout_rate)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.GlobalMaxPooling2D()(x)
-    predictions = tf.keras.layers.Activation('softmax')(x)
+    # Final model
+    model = Model(inputs, outputs)
 
-    model = tf.keras.Model(inputs=input, outputs=predictions)
 
     print(model.summary())
     print(f'Total number of layers: {len(model.layers)}')
@@ -73,5 +79,5 @@ def FCN_model(len_classes=6, dropout_rate=0.2):
     return model
 
 if __name__ == "__main__":
-    FCN_model(len_classes=6, dropout_rate=0.2)
+    CNN_model()
     
