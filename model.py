@@ -3,6 +3,7 @@ from keras.layers import Dense, Bidirectional, LSTM, Reshape, Add
 from keras.layers import LeakyReLU, DepthwiseConv2D, SeparableConv2D
 from keras.models import Model
 import keras.backend as K
+from CTCLoss import ctc_loss
 
 import tensorflow as tf
 
@@ -90,12 +91,13 @@ def CNN_model(max_string_length):
 
 
 
-    loss_out = Lambda(ctc_loss_function, output_shape=(1,), name='ctc')( [outputs, labels, input_length,
-                                                                        label_length])  # Define the model with these inputs
+    loss_out = Lambda(ctc_loss, output_shape=(1,), name='ctc')([outputs, labels, input_length, label_length])
+
 
     model = Model(inputs=[model_inputs, labels, input_length, label_length], outputs=loss_out)
 
     model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer='sgd', metrics=['accuracy'])
+
 
     model.summary()
     print(f'Total number of layers: {len(model.layers)}')
