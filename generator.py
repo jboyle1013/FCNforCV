@@ -61,14 +61,16 @@ class Generator(tf.keras.utils.Sequence):
                     if status == 'ok':
                         word_id = splits[0]
                         word = "".join(splits[8:])
-
+                        encoded_label = self.encode_to_labels(word)
                         splits_id = word_id.split('-')
-                        filepath = os.path.join(dataset_path, 'words', splits_id[0], '{}-{}'.format(splits_id[0], splits_id[1]),
+                        filepath = os.path.join(dataset_path, 'words', splits_id[0],
+                                                '{}-{}'.format(splits_id[0], splits_id[1]),
                                                 word_id + '.png')
 
                         if os.path.exists(filepath):
                             self.image_paths.append(filepath)
                             self.image_labels.append(word)
+                            self.encoded_image_labels.append(encoded_label)
                 except:
                     pass
 
@@ -183,6 +185,15 @@ class Generator(tf.keras.utils.Sequence):
             self.label_groups.append(batch)
             self.encoded_label_groups.append(ebatch)
 
+
+        def encode_to_labels(self, txt):
+            char_list = "!\"#&'()*+,-./0123456789:;?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+            # Encoding each output word into digits
+            dig_lst = []
+            for index, chara in enumerate(txt):
+                dig_lst.append(char_list.index(chara))
+
+            return dig_lst
 
     def __len__(self):
         """
