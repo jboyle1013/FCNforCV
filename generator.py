@@ -227,7 +227,8 @@ class Generator(tf.keras.utils.Sequence):
         image_batch = self.construct_image_batch(images)
 
         # Calculate input_length for each image
-        input_length = np.array([image.shape[1] // 4 for image in image_batch])  # Assuming factor is 4
+        input_length = np.array([(image.shape[1] // 4)-1 for image in image_batch])  # Assuming factor is 4
+
 
         # Pad label sequences
         padded_labels = pad_sequences(encoded_label_group, maxlen=self.max_label_len, padding='post', value=-1)
@@ -251,7 +252,7 @@ class Generator(tf.keras.utils.Sequence):
 if __name__ == "__main__":
 
     BASE_PATH = 'dataset'
-    train_dir = "/home/mdelab/PycharmProjects/FCNforCV/archive/iam_words/"
+    train_dir = "archive/iam_words"
     BATCH_SIZE = 8
     train_generator = Generator(train_dir, BATCH_SIZE, shuffle_images=True, subset="training")
     val_generator = Generator(train_dir, BATCH_SIZE, shuffle_images=True, subset="validation")

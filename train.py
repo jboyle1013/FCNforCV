@@ -5,9 +5,7 @@ from generator import Generator
 import os
 import matplotlib.pyplot as plt
 from export_savedmodel import export, testagainstimagewmodel
-from CTCLoss import ctc_loss_func
-tf.config.run_functions_eagerly(True)
-from newmodel import NewFCN_model
+
 
 
 def train(model, train_generator, val_generator, epochs=50):

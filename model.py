@@ -7,7 +7,14 @@ from CTCLoss import ctc_loss
 
 import tensorflow as tf
 
-tf.config.run_functions_eagerly(True)
+from keras import backend as K
+
+
+def ctc_loss(args):
+    y_pred, labels, input_length, label_length = args
+
+    return K.ctc_batch_cost(labels, y_pred, input_length, label_length)
+
 
 def squeeze(x):
     return K.squeeze(x, 1)
@@ -81,15 +88,11 @@ def CNN_model(max_string_length):
     input_length = Input(name='input_length', shape=[1], dtype='int64')
     label_length = Input(name='label_length', shape=[1], dtype='int64')
 
-
-
     loss_out = Lambda(ctc_loss, output_shape=(1,), name='ctc')([outputs, labels, input_length, label_length])
-
 
     model = Model(inputs=[model_inputs, labels, input_length, label_length], outputs=loss_out)
 
     model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer='sgd', metrics=['accuracy'])
-
 
     model.summary()
     print(f'Total number of layers: {len(model.layers)}')
