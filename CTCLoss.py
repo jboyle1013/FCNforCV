@@ -1,14 +1,17 @@
 import tensorflow as tf
 from keras import backend as K
+from keras.models import Model
 
-def ctc_loss_function(y_true, y_pred):
-    # y_true: tensor (samples, max_string_length) containing the truth labels.
-    # y_pred: tensor (samples, time_steps, num_categories) containing the logits.
-    # input_length and label_length should be calculated or provided depending on your data.
 
-    # Shape of y_true and y_pred
-    label_length = tf.math.count_nonzero(y_true, axis=-1)
-    input_length = tf.fill(tf.shape(label_length), tf.shape(y_pred)[1])
+tf.config.run_functions_eagerly(True)
 
-    # Compute the CTC loss
-    return K.ctc_batch_cost(y_true, y_pred, input_length, label_length)
+
+def create_ctc_loss_function():
+
+    def ctc_loss_function(args):
+        y_pred, labels, input_length, label_length = args
+        print("Received arguments:", labels, y_pred, input_length, label_length)
+        # Your loss calculation code here
+        return K.ctc_batch_cost(labels, y_pred, input_length, label_length)
+
+    return ctc_loss_function

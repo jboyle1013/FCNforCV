@@ -1,17 +1,19 @@
+import keras
 import tensorflow as tf
 from model import CNN_model
 from generator import Generator
 import os
 import matplotlib.pyplot as plt
 from export_savedmodel import export, testagainstimagewmodel
-from CTCLoss import ctc_loss_function
+
+tf.config.run_functions_eagerly(True)
 from newmodel import NewFCN_model
 
 
 def train(model, train_generator, val_generator, epochs=50):
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
-                  loss=ctc_loss_function,  # Use the CTC loss function
-                  metrics='accuracy')
+
+
+
 
     checkpoint_path = './snapshots'
     os.makedirs(checkpoint_path, exist_ok=True)
@@ -42,10 +44,10 @@ if __name__ == "__main__":
         except RuntimeError as e:
             print(e)
     # Create FCN model
-    model = CNN_model()
+
 
     # The below folders are created using utils.py
-    train_dir = 'archive/iam_words/words'
+    train_dir = 'archive/iam_words/'
 
 
 
@@ -54,8 +56,7 @@ if __name__ == "__main__":
     train_generator = Generator(train_dir, BATCH_SIZE, shuffle_images=True, subset="training")
     val_generator = Generator(train_dir, BATCH_SIZE, shuffle_images=True, subset="validation")
 
-
-
+    model = CNN_model(train_generator.max_label_len)
 
     EPOCHS = 50
     history, model = train(model, train_generator, val_generator, epochs=EPOCHS)

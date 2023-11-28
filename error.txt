@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "/home/mdelab/PycharmProjects/FCNforCV/train.py", line 61, in <module>
+    history, model = train(model, train_generator, val_generator, epochs=EPOCHS)
+  File "/home/mdelab/PycharmProjects/FCNforCV/train.py", line 24, in train
+    history = model.fit(train_generator,
+  File "/home/mdelab/anaconda3/lib/python3.9/site-packages/keras/src/utils/traceback_utils.py", line 70, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "/home/mdelab/anaconda3/lib/python3.9/site-packages/tensorflow/python/eager/polymorphic_function/autograph_util.py", line 52, in autograph_handler
+    raise e.ag_error_metadata.to_exception(e)
+tensorflow.python.autograph.impl.api.StagingError: in user code:
+
+    File "/home/mdelab/anaconda3/lib/python3.9/site-packages/keras/src/engine/training.py", line 1401, in train_function  *
+        return step_function(self, iterator)
+    File "/home/mdelab/PycharmProjects/FCNforCV/CTCLoss.py", line 14, in ctc_loss_function  *
+        return K.ctc_batch_cost(y_true, y_pred, input_length, label_length)
+    File "/home/mdelab/anaconda3/lib/python3.9/site-packages/keras/src/backend.py", line 7161, in ctc_batch_cost
+        ctc_label_dense_to_sparse(y_true, label_length), tf.int32
+    File "/home/mdelab/anaconda3/lib/python3.9/site-packages/keras/src/backend.py", line 7110, in ctc_label_dense_to_sparse
+        dense_mask = tf.compat.v1.scan(
+
+    IndexError: tuple index out of range
